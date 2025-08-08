@@ -1,7 +1,4 @@
-# Synchronization Specification
-
-In this assignment, you'll implement the synchronization primitives you've learned about in class, and used in lab.
-We'll break down our discussion about these primitives into *spin-based* techniques, and *block-based* techniques.
+# Synchronization
 
 ## User-Level Interface
 
@@ -108,35 +105,6 @@ As `xv6` discourages dynamic allocation, we are going to statically allocate an 
 This array has `MAX_NUM_LOCKS` locks in it, thus the system should be able to have up to and including that number of locks active (created) at any point in time.
 As discussed above, you'll also need to track for each process which locks it has access to.
 
-# Leveling Up!
-
-Your implementation will receive credit by implementing a number of successive levels:
-
-- **Level 0 (5%).**
-	Make the `lock_example.c` compile when you uncomment the `//#define LOCKS_IMPLEMENTED` line, thus active the lock API.
-- **Level 1 (15%).**
-	Mutual exclusion works given the lock API with `type = LOCK_BLOCK`.
-	You can assume that only *single* lock is created by processes.
-	This assumption means that much of the per-process tracking doesn't need to be functional.
-- **Level 2 (20%).**
-	Mutual exclusion works given the lock API with `type = LOCK_SPIN`.
-	You can assume that only *single* lock is created by processes.
-- **Level 3 (20%).**
-	Mutual exclusion works given the lock API with `type = LOCK_ADAPTIVE`.
-	You can assume that only *single* lock is created by processes.
-- **Level 4 (15%).**
-	Per-process tracking of which locks can be accessed by which process, and proper inheritance of locks across `fork`.
-	The previous implementations should work with multiple locks active at any point in time.
-- **Level 5 (15%).**
-	Proper de-allocation of locks must be implemented.
-	When a process does `lock_delete` or `exit`s, it will no longer have access to that lock. However, if other processes (children/parent, etc...) also have access to that lock, they must *maintain* that access. Only when they all processes no longer want to access the lock (they all `lock_delete` or `exit`) should we reclaim the lock to use for future lock allocations.
-- **Level 6 (10%).**
-	Proper error return values for each of the functions in the API.
-	Handle error cases when processes don't have access to a lock, and improper use of the functions (double `lock_take`, `lock_release` without a previous `lock_take`).
-
-For each of these levels, please provide your own tests in a `lock_lvlx.c` file where `x` is the level it tests.
-Do *not* provide test files for levels that you have not satisfied.
-
 # Suggested Reading
 
 **Locks.**
@@ -152,32 +120,3 @@ Just as with our locks, open file descriptors (similar to lock ids) are inherite
 **Global lock table.**
 You have the single global array of locks that are used to allocate (`lock_create`) locks in your system.
 This is very similar to how processes exist in a big array until we need to allocate them (`fork`).
-
-# Extra Credit
-
-The main opportunity for extra-credit involves integrating your `gwthd` implementation with this assignment's locks!
-
-- **Level 7 (10%).**
-	If your thread implementation from the previous homework is stable (and won't crash, causing you to lose points for the non-extra-credit parts of this homework), use it to create multiple threads and protect access to a shared data-structure with locks.
-	Test with a program that has the critical section shown below, protected by locks.
-
-```
-void
-panic(char *s)
-{
-	printf(2, "%s\n", s);
-	exit();
-}
-
-volatile int shared_variable = 0;
-
-void
-critical_section(void)
-{
-	shared_variable = gwthd_id();
-	sleep(2);
-	if (shared_variable != gwthd_id()) panic("Race condition: your locks don't work!");
-}
-```
-
-Please provide a `lock_lvl7.c` if you complete this level.
